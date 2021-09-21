@@ -8,48 +8,83 @@
 import SwiftUI
 
 struct ContentView: View {
-    var emojis = ["✈️", "🚃", "🚗", "⛴", "🚛", "🚚", "🚙", "🚕", "🚓", "🏍", "🚲", "🛳", "🚢", "🚤", "⛵️", "🛶"]
     @State var emojiCount = 16
+    
+    var themes: [CardTheme] = [
+        CardTheme(title: "Vehicles", imageName: "tram.fill", emojis: ["✈️", "🚃", "🚗", "⛴", "🚛", "🚚", "🚙", "🚕", "🚓", "🏍", "🚲", "🛳", "🚢", "🚤", "⛵️", "🛶"]),
+        CardTheme(title: "Pets", imageName: "pawprint.fill", emojis: ["🐱", "🐶", "🐷", "🐍", "🐴", "🐮", "🐹", "🐥"]),
+        CardTheme(title: "Expressions", imageName: "face.smiling.fill", emojis: ["😬", "🙂", "😎", "😂", "😆", "😉", "🤨", "😫", "😡", "😧"])]
+    @State var selectedThemeTitle: String = "Expressions"
+    
+    let minCardsToShow = 4
+    
+    func getSelectedTheme() -> CardTheme {
+        themes.first(where: { $0.title == selectedThemeTitle })!
+    }
+    
+    func setSelectedTheme(newThemeTitle: String) {
+        selectedThemeTitle = newThemeTitle
+    }
     
     var body: some View {
         VStack {
+            Text("Memorise").font(.largeTitle)
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 75, maximum: 200))]) {
-                    ForEach(emojis[0..<emojiCount], id: \.self) { emoji in
+                let emojis = getSelectedTheme().emojis[0...(Int.random(in: minCardsToShow...getSelectedTheme().emojis.count)) - 1]
+                    .shuffled()
+                
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: CGFloat(600 / emojis.count), maximum: CGFloat(800 / emojis.count)))]) {
+                    ForEach(emojis, id: \.self) { emoji in
                         CardView(content: emoji).aspectRatio(2/3, contentMode: .fit)
                     }
                 }
                 .foregroundColor(/*@START_MENU_TOKEN@*/.red/*@END_MENU_TOKEN@*/)
             }
+            .font(.largeTitle)
             Spacer()
             HStack {
-                remove
-                Spacer()
-                add
+                ForEach(themes, id: \.title) { theme in
+                    VStack {
+                        // Fix relative size of images
+                        ThemeChooserButton(imageName: theme.imageName,
+                                           title: theme.title,
+                                           isSelected: theme.title == selectedThemeTitle)
+                            .onTapGesture {
+                                setSelectedTheme(newThemeTitle: theme.title)
+                            }
+                    }
+                    .padding(.horizontal)
+                    
+                }
             }
-            .font(.largeTitle)
         }
         .padding(.horizontal)
     }
     
-    var add: some View {
-        Button(action: {
-            if emojiCount < emojis.count {
-                emojiCount += 1
-            }
-        }, label: {
-            Image(systemName: "plus.circle")
-        })
-    }
     
-    var remove: some View {
-        Button(action: {
-            if emojiCount > 0 {
-                emojiCount -= 1
-            }
-        }, label: {
-            Image(systemName: "minus.circle")
-        })
+}
+
+struct CardTheme {
+    var title: String
+    var imageName: String
+    var emojis: [String]
+}
+
+struct ThemeChooserButton: View {
+    var imageName: String
+    var title: String
+    var isSelected: Bool
+    
+    var body: some View {
+        VStack {
+            // Fix relative size of images
+            Image(systemName: imageName)
+                .font(.system(size: 32))
+                .padding(.vertical)
+            Text(title)
+                .font(.subheadline)
+        }
+        .foregroundColor(isSelected ? .accentColor : .primary)
     }
 }
 
