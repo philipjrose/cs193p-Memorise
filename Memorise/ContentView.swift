@@ -10,19 +10,56 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
     
+    private func getColourForScore(_ score: Int) -> Color {
+        switch score {
+        case let score where score > 0:
+            return Color.green
+        case let score where score < 0:
+            return Color.red
+        default:
+            return Color.primary
+        }
+    }
+    
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 75, maximum: 200))]) {
-                ForEach(viewModel.cards) { card in
-                    CardView(card: card)
-                        .aspectRatio(2/3, contentMode: .fit)
-                        .onTapGesture {
-                            viewModel.choose(card)
-                        }
+        VStack {
+            ZStack {
+                HStack {
+                    Spacer()
+                    Button("New Game") {
+                        viewModel.newGame()
+                    }.font(.subheadline)
+                }
+                HStack {
+                    VStack {
+                        Text("Memorise").font(.headline)
+                        Text("\(viewModel.themeName)")
+                            .font(.subheadline)
+                            .foregroundColor(viewModel.cardColour)
+                    }
+                    
                 }
             }
-            .padding(.horizontal)
-            .foregroundColor(/*@START_MENU_TOKEN@*/.red/*@END_MENU_TOKEN@*/)
+            Divider()
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 75, maximum: 200))]) {
+                    ForEach(viewModel.cards) { card in
+                        CardView(card: card)
+                            .aspectRatio(2/3, contentMode: .fit)
+                            .onTapGesture {
+                                viewModel.choose(card)
+                            }
+                    }
+                }
+                .foregroundColor(viewModel.cardColour)
+            }
+            Divider()
+            VStack {
+                Text("Score").font(.subheadline)
+                Text(String(viewModel.score))
+                    .font(.system(size: 64))
+                    .foregroundColor(getColourForScore(viewModel.score))
+            }
         }
     }
 }

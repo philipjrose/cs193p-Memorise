@@ -8,16 +8,48 @@
 import SwiftUI
 
 class EmojiMemoryGame: ObservableObject {
-    static let emojis = ["✈️", "🚃", "🚗", "⛴", "🚛", "🚚", "🚙", "🚕", "🚓", "🏍", "🚲", "🛳", "🚢", "🚤", "⛵️", "🛶"]
+    typealias Theme = MemoryGame<String>.Theme
+    typealias ThemeColour = MemoryGame<String>.ThemeColour
     
-    static func createMemoryGame() -> MemoryGame<String> {
-        MemoryGame<String>(numberofPairsOfCards: 6, createCardContent: { pairIndex in emojis[pairIndex] })
+    private static let colourMap: [ThemeColour: Color] = [
+        .blue: .blue,
+        .orange: .orange,
+        .green: .green,
+        .red: .red,
+        .yellow: .yellow,
+        .purple: .purple
+    ]
+    
+    private static let themes = [
+        Theme(name: "Modes of transport", distinctCardContents: ["✈️", "🚃", "🚗", "⛴", "🚛", "🚚", "🚙", "🚕", "🚓", "🏍", "🚲", "🛳", "🚢", "🚤", "⛵️", "🛶"], pairsToShow: 6, colour: ThemeColour.blue),
+        Theme(name: "Animals", distinctCardContents: ["🐱", "🐶", "🐭", "🐷", "🐹", "🐠", "🐻", "🦊", "🐌", "🐮", "🐴", "🦋", "🐝", "🐀", "🦜", "🐗"], pairsToShow: 10, colour: ThemeColour.orange),
+        Theme(name: "Flags", distinctCardContents: ["🇬🇧", "🇬🇭", "🇿🇦", "🇹🇭", "🇫🇷", "🇵🇫", "🇸🇦"], pairsToShow: 4, colour: ThemeColour.purple),
+        Theme(name: "Expressions", distinctCardContents: ["🙂", "😬", "😎", "😂", "😆", "🤪", "😫", "😡"], pairsToShow: 5, colour: ThemeColour.yellow),
+        Theme(name: "Olympic sports", distinctCardContents: ["⚽️", "🏉", "⛷", "🥌", "🏊", "🏹", "🥊"], pairsToShow: 7, colour: ThemeColour.green),
+        Theme(name: "Murder weapons", distinctCardContents: ["🔪", "💣", "🔫", "💪", "🧪", "🔥"], pairsToShow: 6, colour: ThemeColour.red)
+        ]
+    
+    @Published private var model: MemoryGame<String> = MemoryGame<String>(themes.randomElement()!)
+    
+    
+    func newGame() {
+        self.model = MemoryGame<String>(EmojiMemoryGame.themes.randomElement()!)
     }
-    
-    @Published private var model: MemoryGame<String> = createMemoryGame()
     
     var cards: [MemoryGame<String>.Card] {
         model.cards
+    }
+    
+    var cardColour: Color {
+        EmojiMemoryGame.colourMap[model.theme.colour]!
+    }
+    
+    var themeName: String {
+        model.theme.name
+    }
+    
+    var score: Int {
+        model.score
     }
     
     // MARK: - Intent(s)

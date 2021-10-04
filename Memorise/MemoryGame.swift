@@ -10,17 +10,26 @@ import Foundation
 struct MemoryGame<CardContent> where CardContent: Equatable {
     
     private(set) var cards: Array<Card>
+    private(set) var score: Int = 0
+    
+    let theme: Theme
     
     private var indexOfTheOneAndOnlyFaceUpCard: Int?
     
-    init(numberofPairsOfCards: Int, createCardContent: (Int) -> CardContent) {
+    init(_ theme: Theme) {
+        self.theme = theme
+        
         cards = [Card]()
         
-        for pairIndex in 0..<numberofPairsOfCards {
-            let content = createCardContent(pairIndex)
+        let cardContents = theme.distinctCardContents.shuffled()
+        
+        for pairIndex in 0..<min(theme.pairsToShow, cardContents.count) {
+            let content = cardContents[pairIndex]
             cards.append(Card(isFaceUp: false, isMatched: false, content: content, id: pairIndex * 2))
             cards.append(Card(isFaceUp: false, isMatched: false, content: content, id: pairIndex * 2 + 1))
         }
+        
+        cards.shuffle()
     }
     
     mutating func choose(_ card: Card) {
@@ -31,6 +40,10 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                 if cards[chosenIndex].content == cards[potentialMatchIndex].content {
                     cards[chosenIndex].isMatched = true
                     cards[potentialMatchIndex].isMatched = true
+                    
+                    score += 2
+                } else {
+                    score -= 1
                 }
                 
                 indexOfTheOneAndOnlyFaceUpCard = nil
@@ -51,5 +64,16 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         var content: CardContent
         
         var id: Int
+    }
+    
+    struct Theme {
+        let name: String
+        let distinctCardContents: [CardContent]
+        let pairsToShow: Int
+        let colour: ThemeColour
+    }
+    
+    enum ThemeColour {
+        case red, blue, green, yellow, purple, orange
     }
 }
