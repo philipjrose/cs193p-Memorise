@@ -30,37 +30,41 @@ struct EmojiMemoryGameView: View {
 struct CardView: View {
     var card: MemoryGame<String>.Card
     
-    init(_ card: EmojiMemoryGame.Card) {
+    init(_ card: MemoryGame<String>.Card) {
         self.card = card
     }
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                let shape = RoundedRectangle(cornerRadius: DrawingConstants.cornerRadius)
-
-                if card.isFaceUp {
-                    shape.fill().foregroundColor(.white)
-                    shape.strokeBorder(lineWidth: DrawingConstants.lineWidth)
-                    Pie(startAngle: Angle(degrees: -90), endAngle: Angle(degrees: 40), clockwise: true).padding(5).opacity(0.6)
-                    Text(card.content).font(emojiFont(in: geometry.size))
-                } else if card.isMatched {
-                    shape.opacity(0)
-                } else {
-                    shape.fill()
-                }
+                Pie(startAngle: Angle(degrees: -90), endAngle: Angle(degrees: 40), clockwise: true)
+                    .padding(5)
+                    .opacity(0.6)
+                Text(card.content)
+                    .rotationEffect(
+                        Angle.degrees(
+                            card.isMatched ? 360 : 0
+                        )
+                    )
+                    .animation(Animation.linear(duration: 1).repeatForever(autoreverses: false))
+                    .font(Font.system(size: DrawingConstants.fontSize))
+                    .scaleEffect(scale(thatFits: geometry.size))
             }
+            .cardify(isFaceUp: card.isFaceUp)
         }
     }
     
+    private func scale(thatFits size: CGSize) -> CGFloat {
+        min(size.width, size.height) / (DrawingConstants.fontSize / DrawingConstants.fontScale)
+    }
+    
     private func emojiFont(in size: CGSize) -> Font {
-        Font.system(size: min(size.width, size.height) * DrawingConstants.emojiScale)
+        Font.system(size: min(size.width, size.height) * DrawingConstants.fontScale)
     }
     
     private struct DrawingConstants {
-        static let cornerRadius: CGFloat = 10
-        static let lineWidth: CGFloat = 3
-        static let emojiScale: CGFloat = 0.7
+        static let fontSize: CGFloat = 32
+        static let fontScale: CGFloat = 0.7
     }
 }
 
